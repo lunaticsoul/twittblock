@@ -46,7 +46,8 @@ namespace TwittBlock.WebTwitter
 
                 HttpContent content = new FormUrlEncodedContent(postData);
                 var result = await client.PostAsync(form.Action, content);
-                return true;
+                string response = await result.Content.ReadAsStringAsync();
+                return !response.Contains("https://twitter.com/sessions");
             }
 
             return false;

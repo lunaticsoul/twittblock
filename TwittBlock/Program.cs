@@ -15,8 +15,10 @@ namespace TwittBlock
         {
             string[] links = new string[] { "topicza.com", "socialhot24.com", "darachilli.com", "starnews2day.com", "you-health.net", "lekded369.com", "startclip.com" };
             var blocker = new Blocker(links);
-            string userName = "";
-            string password = "";
+            Console.Write("Enter user name: ");
+            string userName = Console.ReadLine();
+            Console.Write("Enter password: ");
+            string password = Console.ReadLine();
             blocker.StartScan(userName, password).Wait();
         }
     }

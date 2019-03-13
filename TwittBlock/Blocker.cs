@@ -24,7 +24,14 @@ namespace TwittBlock
 
         public async Task StartScan(string userName, string password)
         {
-            await twitter.Login(userName, password);
+            if (!await twitter.Login(userName, password))
+            {
+                Console.WriteLine("Login failed");
+                Console.WriteLine("Press any key to exit");
+                Console.ReadKey();
+                return;
+            }
+
             int previousBlockCount = 0;
             while (true)
             {
@@ -32,26 +39,33 @@ namespace TwittBlock
                 rootKeywords.AddRange(blockingLinks);
                 rootKeywords.AddRange(blockingLinks.Select(l => l.Split('.')[0]));
 
-                foreach (var link in rootKeywords)
+                try
                 {
-                    List<Tweet> tweets = Judge(await twitter.GetFeeds("https://twitter.com/search?f=tweets&vertical=default&q=" + HttpUtility.UrlEncode(link) + "&src=typd", 100));
-                    do
+                    foreach (var link in rootKeywords)
                     {
-                        Console.WriteLine("Scaning: " + tweets.Count);
-                        tweets = await BlockProcess(tweets, false);
+                        List<Tweet> tweets = Judge(await twitter.GetFeeds("https://twitter.com/search?f=tweets&vertical=default&q=" + HttpUtility.UrlEncode(link) + "&src=typd", 100));
+                        do
+                        {
+                            Console.WriteLine($"Blocking ({link}): " + tweets.Count);
+                            tweets = await BlockProcess(tweets, false);
+                        }
+                        while (tweets.Count > 0);
                     }
-                    while (tweets.Count > 0);
-                }
 
-                if (blockCount > previousBlockCount)
+                    //if (blockCount > previousBlockCount)
+                    //{
+                    //    Console.WriteLine("Blocked " + blockCount);
+                    //    previousBlockCount = blockCount;
+                    //}
+                    //else
+                    Console.WriteLine("Waiting for next scan");
+
+                    Thread.Sleep(60000);
+                }
+                catch(Exception exception)
                 {
-                    Console.WriteLine("Blocked " + blockCount);
-                    previousBlockCount = blockCount;
+                    Console.WriteLine(exception.Message);
                 }
-                else
-                    Console.WriteLine(".");
-
-                Thread.Sleep(1000);
             }
         }
 
